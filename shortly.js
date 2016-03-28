@@ -72,6 +72,27 @@ function(req, res) {
   });
 });
 
+app.post('/signup', 
+function(req, res) {
+  var username = req.body.username;
+  var password = req.body.password;
+
+  new User({ username: username, password: password }).fetch().then(function(found) {
+    // fetch checks if item exists in table
+    if (found) {
+      res.send(200, found.attributes);
+    } else {
+      Users.create({
+        // TODO: escape these inputs with Bookshelf's model.escape, here or in the model
+        username: username
+      })
+      .then(function(newUser) {
+        res.redirect('/');
+      });
+    }
+  });
+});
+
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
