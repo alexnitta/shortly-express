@@ -31,17 +31,24 @@ app.use(session({
   saveUninitialized: true
 }));
 
-app.get('/', 
+
+
+app.get('/', util.restrict,
 function(req, res) {
   res.render('index');
 });
 
-app.get('/create', 
+app.get('/create', util.restrict,
 function(req, res) {
   res.render('index');
 });
 
-app.get('/links', 
+app.get('/login', 
+function(req, res) {
+  res.render('login');
+});
+
+app.get('/links', util.restrict,
 function(req, res) {
   Links.reset().fetch().then(function(links) {
     res.send(200, links.models);
@@ -127,7 +134,6 @@ function(req, res) {
         return compareAsync(password, hash);   
       } else { // if user does not exist, keep on login page
         res.redirect('/login');
-
       }
     })
     .then(function(passwordMatches) {
