@@ -43,15 +43,26 @@ function(req, res) {
   res.render('index');
 });
 
+app.get('/signup',
+function(req, res) {
+  res.render('signup');
+});
+
 app.get('/login', 
 function(req, res) {
   res.render('login');
 });
 
+app.get('/logout', 
+function(req, res) {
+  req.session.destroy(function() {
+    res.redirect('/');
+  });
+});
+
 app.get('/links', util.restrict,
 function(req, res) {
   Links.reset().fetch().then(function(links) {
-    console.log('links: ', links);
     res.send(200, links.models);
   });
 });
