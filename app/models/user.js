@@ -2,7 +2,7 @@ var db = require('../config');
 var bcrypt = require('bcrypt-nodejs');
 var Promise = require('bluebird');
 
-
+Promise.promisifyAll(bcrypt);
 
 var User = db.Model.extend({
   tableName: 'users',
@@ -11,31 +11,33 @@ var User = db.Model.extend({
     // console.log('password from closure?:', req.body.password );
     this.on('creating', this.hashPassword, this);
   },
-    
+  
   hashPassword: function(model, attrs, options) {
-    return new Promise(function(resolve, reject) {
-      // create a salt with bcrypt.genSaltSync(10);
-      var salt = bcrypt.genSaltSync(10);
-      // create a hash with bcrypt.hashSync(password, salt);
-      bcrypt.hash(attrs.password, salt, null, function(err, hash) {
-        if (err) {
-          reject (err);
-        }
-        model.set('password', hash);
-        model.set('salt', salt);
-        resolve(hash);
-      });
-    });
+    return bcrypt.genSaltAsync(10)
+    .then(function(salt) {
+      return bcrypt.hashAsync(attrs.password, salt, null);
+    })
+    .then(function(hash) {
+      model.set('password', hash);
+    })
+    .catch(function(err) {
+      console.log('Oops, caught an error: ', err.message);
+    });    
 
-    // console.log('model: ', model);
-    // console.log('attrs: ', attrs);
-      // get password attribute passed in
-      // var password = attrs.password;
-      // create a salt with bcrypt.genSaltSync(10);
-      // create a hash with bcrypt.hashSync(password, salt);
-      // var shasum = crypto.createHash('sha1');
-      // shasum.update(model.get('url'));
-      // model.set('code', shasum.digest('hex').slice(0, 5));
+    // return new Promise(function(resolve, reject) {
+    //   // create a salt with bcrypt.genSaltSync(10);
+    //   // create a hash with bcrypt.hashSync(password, salt);
+    //   // var salt = bcrypt.genSaltSync(10, function(err, salt));
+    //   var salt = '12356912348';
+    //   bcrypt.hash(attrs.password, salt, null, function(err, hash) {
+    //     if (err) {
+    //       reject (err);
+    //     }
+    //     model.set('password', hash);
+    //     model.set('salt', salt);
+    //     resolve(hash);
+    //   });
+    // });
   }
 });
 

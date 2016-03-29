@@ -1,0 +1,3 @@
+Notes
+
+Figure out what's wrong with the mechanism to check for duplicate users

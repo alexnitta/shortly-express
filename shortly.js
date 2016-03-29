@@ -3,6 +3,7 @@ var session = require('express-session');
 var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
+var bcrypt = require('bcrypt-nodejs');
 
 
 var db = require('./app/config');
@@ -105,7 +106,18 @@ function(req, res) {
   })
     .fetchOne()
     .then(function(user) {
-      console.log(user.attributes.password);
+      var hash = user.attributes.password;
+      console.log('queried password: ', password);
+      bcrypt.compare(password, hash, function(err, res) {
+        if (err) {
+          console.log('There was an error: ', err);
+        } else if (res) {
+          console.log('Yo that password matches ya\'ll! res is ', res);
+          // start a session
+        } else {
+          console.log('Incorrect login!');
+        }
+      });
     })
     .catch(function(error) {
       console.log('error, ', error);
