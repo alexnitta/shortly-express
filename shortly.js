@@ -23,7 +23,9 @@ app.use(bodyParser.json());
 // Parse forms (signup/login)
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
-
+app.use(session({
+  secret: 'superSecretSessionKey',
+}));
 
 app.get('/', 
 function(req, res) {
@@ -111,21 +113,23 @@ app.post('/login',
 function(req, res) {
   var username = req.body.username;
   var password = req.body.password;
-
   Users.query(function(qb) {
-    console.log('queried username: ', username);
     qb.where('username', '=', username);
   })
     .fetchOne()
     .then(function(user) {
       var hash = user.attributes.password;
-      console.log('queried password: ', password);
       bcrypt.compare(password, hash, function(err, res) {
         if (err) {
           console.log('There was an error: ', err);
         } else if (res) {
-          console.log('Yo that password matches ya\'ll! res is ', res);
           // start a session
+          console.log('req.session', req.session);
+          req.session.regenerate(function() {
+            req.session.user = username;
+            req.redirect('/'); 
+          });
+
         } else {
           console.log('Incorrect login!');
         }
