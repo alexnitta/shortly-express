@@ -86,10 +86,11 @@ function(req, res) {
     .fetchOne()
     .then(function(user) {
       if (user) {
-        console.log('Username taken');
+        //if user exists already then we need to redirect it to login
+        res.redirect('/');
       } else { 
         Users.create({
-        // TODO: escape these inputs with Bookshelf's model.escape, here or in the model
+          // TODO: escape these inputs with Bookshelf's model.escape, here or in the model
           username: username,
           password: password
         })
@@ -99,23 +100,11 @@ function(req, res) {
       }
     })
     .catch(function(error) {
-      console.log('Error creating a user, ', error);
+      throw {
+        type: 'User adding error',
+        message: 'Failed to add user: ' + error
+      };
     });
-
-  // new User({ username: username, password: password }).fetch().then(function(found) {
-  //   // fetch checks if item exists in table
-  //   if (found) {
-  //     res.send(200, found.attributes);
-  //   } else {
-  //     Users.create({
-  //       // TODO: escape these inputs with Bookshelf's model.escape, here or in the model
-  //       username: username
-  //     })
-  //     .then(function(newUser) {
-  //       res.redirect('/');
-  //     });
-  //   }
-  // });
 });
 
 app.post('/login', 
