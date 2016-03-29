@@ -4,6 +4,8 @@ var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
 var bcrypt = require('bcrypt-nodejs');
+var Promise = require('bluebird');
+var compareAsync = Promise.promisify(bcrypt.compare);
 
 
 var db = require('./app/config');
@@ -25,6 +27,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
 app.use(session({
   secret: 'superSecretSessionKey',
+  resave: false,
+  saveUninitialized: true
 }));
 
 app.get('/', 
@@ -118,61 +122,29 @@ function(req, res) {
   })
     .fetchOne()
     .then(function(user) {
-      var hash = user.attributes.password;
-      bcrypt.compare(password, hash, function(err, res) {
-        if (err) {
-          console.log('There was an error: ', err);
-        } else if (res) {
-          // start a session
-          console.log('req.session', req.session);
-          req.session.regenerate(function() {
-            req.session.user = username;
-            req.redirect('/'); 
-          });
+      if (user) { // if user exists, check password
+        var hash = user.attributes.password;
+        return compareAsync(password, hash);   
+      } else { // if user does not exist, keep on login page
+        res.redirect('/login');
 
-        } else {
-          console.log('Incorrect login!');
-        }
-      });
+      }
+    })
+    .then(function(passwordMatches) {
+      if (passwordMatches) { // if password matches, start a session
+        req.session.regenerate(function() {
+          req.session.user = username;
+          res.redirect('/');
+        });
+      } else { // if password doesn't match, keep on login page
+        res.redirect('/login');
+      }
     })
     .catch(function(error) {
-      console.log('error, ', error);
+      console.log('error on login, ', error);
     });
 });
-  // fetch checks if item exists in table
-  
-  // // check if user exists
-  // if (found) {
-  // // if user exists,
 
-  //   // retrieve hashed password via db query
-  //   // compare hashed password to password (with bcrypt.compare)
-  //   // if fails
-  //     // keep user on login page (maybe with message that it failed)
-  //   // if succeeds
-  //     // start a new session saving some session/cookie information
-  //     // redirect to homepage '/'
-
-  // } else {
-  //   // if fails, return error
-  //   // send error 'please create a username before signing in'
-  // }
-
-  // new User({ username: username, password: password }).fetch().then(function(found) {
-  //   // fetch checks if item exists in table
-  //   if (found) {
-  //     res.send(200, found.attributes);
-  //   } else {
-  //     Users.create({
-  //       // TODO: escape these inputs with Bookshelf's model.escape, here or in the model
-  //       username: username
-  //     })
-  //     .then(function(newUser) {
-  //       res.redirect('/');
-  //     });
-  //   }
-  // });
-// });
 
 /************************************************************/
 // Write your authentication routes here
