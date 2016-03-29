@@ -1,4 +1,5 @@
 var express = require('express');
+var session = require('express-session');
 var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
@@ -92,6 +93,58 @@ function(req, res) {
     }
   });
 });
+
+app.post('/login', 
+function(req, res) {
+  var username = req.body.username;
+  var password = req.body.password;
+
+  Users.query(function(qb) {
+    console.log('queried username: ', username);
+    qb.where('username', '=', username);
+  })
+    .fetchOne()
+    .then(function(user) {
+      console.log(user.attributes.password);
+    })
+    .catch(function(error) {
+      console.log('error, ', error);
+    });
+});
+  // fetch checks if item exists in table
+  
+  // // check if user exists
+  // if (found) {
+  // // if user exists,
+
+  //   // retrieve hashed password via db query
+  //   // compare hashed password to password (with bcrypt.compare)
+  //   // if fails
+  //     // keep user on login page (maybe with message that it failed)
+  //   // if succeeds
+  //     // start a new session saving some session/cookie information
+  //     // redirect to homepage '/'
+
+  // } else {
+  //   // if fails, return error
+  //   // send error 'please create a username before signing in'
+  // }
+
+  // new User({ username: username, password: password }).fetch().then(function(found) {
+  //   // fetch checks if item exists in table
+  //   if (found) {
+  //     res.send(200, found.attributes);
+  //   } else {
+  //     Users.create({
+  //       // TODO: escape these inputs with Bookshelf's model.escape, here or in the model
+  //       username: username
+  //     })
+  //     .then(function(newUser) {
+  //       res.redirect('/');
+  //     });
+  //   }
+  // });
+// });
 
 /************************************************************/
 // Write your authentication routes here
