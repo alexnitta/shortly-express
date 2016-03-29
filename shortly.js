@@ -79,20 +79,43 @@ function(req, res) {
   var username = req.body.username;
   var password = req.body.password;
 
-  new User({ username: username, password: password }).fetch().then(function(found) {
-    // fetch checks if item exists in table
-    if (found) {
-      res.send(200, found.attributes);
-    } else {
-      Users.create({
+  Users.query(function(qb) {
+    console.log('queried username: ', username);
+    qb.where('username', '=', username);
+  })
+    .fetchOne()
+    .then(function(user) {
+      if (user) {
+        console.log('Username taken');
+      } else { 
+        Users.create({
         // TODO: escape these inputs with Bookshelf's model.escape, here or in the model
-        username: username
-      })
-      .then(function(newUser) {
-        res.redirect('/');
-      });
-    }
-  });
+          username: username,
+          password: password
+        })
+        .then(function(newUser) {
+          res.redirect('/');
+        });
+      }
+    })
+    .catch(function(error) {
+      console.log('Error creating a user, ', error);
+    });
+
+  // new User({ username: username, password: password }).fetch().then(function(found) {
+  //   // fetch checks if item exists in table
+  //   if (found) {
+  //     res.send(200, found.attributes);
+  //   } else {
+  //     Users.create({
+  //       // TODO: escape these inputs with Bookshelf's model.escape, here or in the model
+  //       username: username
+  //     })
+  //     .then(function(newUser) {
+  //       res.redirect('/');
+  //     });
+  //   }
+  // });
 });
 
 app.post('/login', 

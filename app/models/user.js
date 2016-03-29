@@ -24,20 +24,6 @@ var User = db.Model.extend({
       console.log('Oops, caught an error: ', err.message);
     });    
 
-    // return new Promise(function(resolve, reject) {
-    //   // create a salt with bcrypt.genSaltSync(10);
-    //   // create a hash with bcrypt.hashSync(password, salt);
-    //   // var salt = bcrypt.genSaltSync(10, function(err, salt));
-    //   var salt = '12356912348';
-    //   bcrypt.hash(attrs.password, salt, null, function(err, hash) {
-    //     if (err) {
-    //       reject (err);
-    //     }
-    //     model.set('password', hash);
-    //     model.set('salt', salt);
-    //     resolve(hash);
-    //   });
-    // });
   }
 });
 
