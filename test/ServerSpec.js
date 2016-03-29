@@ -150,7 +150,7 @@ describe('', function() {
 
     }); // 'Shortening links'
 
-    xdescribe('With previously saved urls:', function() {
+    describe('With previously saved urls:', function() {
 
       var link;
 
@@ -177,9 +177,18 @@ describe('', function() {
         };
 
         requestWithSession(options, function(error, res, body) {
-          var code = res.body.code;
-          expect(code).to.equal(link.get('code'));
-          done();
+          link = new Link({
+            url: 'http://roflzoo.com/',
+            title: 'Funny pictures of animals, funny dog pictures',
+            baseUrl: 'http://127.0.0.1:4568'
+          });
+          link.save().then(function() {
+            var code = res.body.code;
+            expect(code).to.equal(link.get('code'));
+            done();
+          });
+
+
         });
       });
 
@@ -238,7 +247,7 @@ describe('', function() {
 
   }); // 'Priviledged Access'
 
-  describe('Account Creation:', function() {
+  xdescribe('Account Creation:', function() {
 
     it('Signup creates a user record', function(done) {
       var options = {

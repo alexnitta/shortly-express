@@ -51,6 +51,7 @@ function(req, res) {
 app.get('/links', util.restrict,
 function(req, res) {
   Links.reset().fetch().then(function(links) {
+    console.log('links: ', links);
     res.send(200, links.models);
   });
 });
