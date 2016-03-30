@@ -1,4 +1,8 @@
 var express = require('express');
+
+var passport = require('passport');
+var LocalStrategy = require('passport-local').Strategy;
+
 var session = require('express-session');
 var util = require('./lib/utility');
 var partials = require('express-partials');
@@ -17,6 +21,7 @@ var Click = require('./app/models/click');
 
 var app = express();
 
+
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 app.use(partials());
@@ -31,7 +36,8 @@ app.use(session({
   saveUninitialized: true
 }));
 
-
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.get('/', util.restrict,
 function(req, res) {
@@ -132,36 +138,65 @@ function(req, res) {
     });
 });
 
-app.post('/login', 
-function(req, res) {
-  var username = req.body.username;
-  var password = req.body.password;
-  Users.query(function(qb) {
-    qb.where('username', '=', username);
-  })
+
+passport.use(new LocalStrategy(
+  function(username, password, done) {
+    Users.query(function(qb) {
+      qb.where('username', '=', username);
+    })
     .fetchOne()
     .then(function(user) {
-      if (user) { // if user exists, check password
-        var hash = user.attributes.password;
-        return compareAsync(password, hash);   
-      } else { // if user does not exist, keep on login page
-        res.redirect('/login');
+      if (!user) {
+        return done(null, false, { message: 'Incorrect username.' });
       }
-    })
-    .then(function(passwordMatches) {
-      if (passwordMatches) { // if password matches, start a session
-        req.session.regenerate(function() {
-          req.session.user = username;
-          res.redirect('/');
-        });
-      } else { // if password doesn't match, keep on login page
-        res.redirect('/login');
+      if (!user.validPassword(password)) {
+        return done(null, false, { message: 'Incorrect password.' });
       }
+      return done(null, user);
     })
     .catch(function(error) {
       console.log('error on login, ', error);
     });
-});
+  }
+));
+
+app.post('/login',
+  passport.authenticate('local', { 
+    successRedirect: '/',
+    failureRedirect: '/login',
+    failureFlash: true 
+  })
+);
+// app.post('/login', 
+// function(req, res) {
+//   var username = req.body.username;
+//   var password = req.body.password;
+//   Users.query(function(qb) {
+//     qb.where('username', '=', username);
+//   })
+//     .fetchOne()
+//     .then(function(user) {
+//       if (user) { // if user exists, check password
+//         var hash = user.attributes.password;
+//         return compareAsync(password, hash);   
+//       } else { // if user does not exist, keep on login page
+//         res.redirect('/login');
+//       }
+//     })
+//     .then(function(passwordMatches) {
+//       if (passwordMatches) { // if password matches, start a session
+//         req.session.regenerate(function() {
+//           req.session.user = username;
+//           res.redirect('/');
+//         });
+//       } else { // if password doesn't match, keep on login page
+//         res.redirect('/login');
+//       }
+//     })
+//     .catch(function(error) {
+//       console.log('error on login, ', error);
+//     });
+// });
 
 
 /************************************************************/
